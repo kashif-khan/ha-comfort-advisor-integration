@@ -36,6 +36,8 @@ class ThresholdNumber(ComfortEntity, RestoreNumber):
             self._attr_device_class = NumberDeviceClass.DURATION
             self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
             self._attr_icon = "mdi:timer-sand"
+        elif kind == "volume":
+            self._attr_icon = "mdi:gas-station"
         else:
             self._attr_device_class = NumberDeviceClass.HUMIDITY
             self._attr_native_unit_of_measurement = PERCENTAGE

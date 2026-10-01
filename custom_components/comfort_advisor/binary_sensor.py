@@ -14,6 +14,7 @@ SENSORS = [
     ("moisturizer_needed", "Moisturizer needed", "mdi:lotion-outline", "moisturizer_needed"),
     ("humidifier_needed", "Humidifier needed", "mdi:air-humidifier", "humidifier_needed"),
     ("humidifier_off_suggested", "Humidifier can be turned off", "mdi:air-humidifier-off", "humidifier_off_suggested"),
+    ("wiper_service_advised", "Wipers service mode advised", "mdi:wiper", "wiper_needed"),
     ("readings_settling", "Readings settling", "mdi:timer-sand", "pending"),
 ]
 
@@ -41,6 +42,8 @@ class AdviceBinarySensor(ComfortEntity, BinarySensorEntity):
             return {"humidifiers_to_turn_on": advice.humidifiers_to_turn_on}
         if self._attr == "humidifier_off_suggested":
             return {"humidifiers_to_turn_off": advice.humidifiers_to_turn_off}
+        if self._attr == "wiper_needed":
+            return {"reason": advice.wiper_reason}
         if self._attr == "pending":
             return {"metrics": advice.pending}
         return {}

@@ -18,13 +18,20 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_ANDROID_AUTO,
     CONF_ANNOUNCE_SCRIPT,
+    CONF_CAR_MODE_SENSORS,
+    CONF_CAR_TRACKER,
+    CONF_FUEL_LEVEL,
+    CONF_GAS_PRICE,
+    CONF_GAS_STATION,
     CONF_HUMIDIFIERS,
     CONF_INDOOR_HUMIDITY,
     CONF_INDOOR_TEMPERATURE,
     CONF_OUTDOOR_HUMIDITY,
     CONF_OUTDOOR_TEMPERATURE,
+    CONF_PRAYER_SENSORS,
     CONF_SPEAKERS,
     CONF_TTS_ENTITY,
+    CONF_WEATHER,
     DOMAIN,
 )
 
@@ -50,6 +57,13 @@ def _schema(values: Mapping[str, Any], with_name: bool = False) -> vol.Schema:
             vol.Optional(CONF_SPEAKERS, description=suggested(CONF_SPEAKERS)): _entity("media_player", True),
             vol.Optional(CONF_TTS_ENTITY, description=suggested(CONF_TTS_ENTITY)): _entity("tts"),
             vol.Optional(CONF_ANNOUNCE_SCRIPT, description=suggested(CONF_ANNOUNCE_SCRIPT)): _entity("script"),
+            vol.Optional(CONF_PRAYER_SENSORS, description=suggested(CONF_PRAYER_SENSORS)): _entity("sensor", True),
+            vol.Optional(CONF_GAS_PRICE, description=suggested(CONF_GAS_PRICE)): _entity("sensor"),
+            vol.Optional(CONF_GAS_STATION, description=suggested(CONF_GAS_STATION)): TextSelector(),
+            vol.Optional(CONF_FUEL_LEVEL, description=suggested(CONF_FUEL_LEVEL)): _entity("sensor"),
+            vol.Optional(CONF_WEATHER, description=suggested(CONF_WEATHER)): _entity("weather"),
+            vol.Optional(CONF_CAR_TRACKER, description=suggested(CONF_CAR_TRACKER)): _entity(["device_tracker", "person"]),
+            vol.Optional(CONF_CAR_MODE_SENSORS, description=suggested(CONF_CAR_MODE_SENSORS)): _entity("binary_sensor", True),
             vol.Required(CONF_ANDROID_AUTO, default=values.get(CONF_ANDROID_AUTO, True)): BooleanSelector(),
         }
     )

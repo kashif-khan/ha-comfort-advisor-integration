@@ -1,3 +1,7 @@
 announce:
   name: Announce now
   description: Speak and notify the current jacket, moisturizer and humidifier advice right now.
+
+car_briefing:
+  name: Send car briefing
+  description: Send home temperature and humidity, what to wear, next prayer and gas prices to the car display now.

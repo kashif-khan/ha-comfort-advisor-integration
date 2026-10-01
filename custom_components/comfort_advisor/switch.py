@@ -11,6 +11,13 @@ from .const import SUBSCRIPTION_PREFIX, SWITCHES
 from .entity import ComfortEntity
 from .manager import ComfortAdvisor, discover_subscribers
 
+SWITCH_ICONS = {
+    "speaker_enabled": "mdi:speaker-message",
+    "prayer_alerts": "mdi:mosque",
+    "car_briefing": "mdi:car-info",
+    "wiper_reminder": "mdi:wiper",
+}
+
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     advisor: ComfortAdvisor = entry.runtime_data
@@ -59,7 +66,7 @@ class SettingSwitch(_RestoredSwitch):
         super().__init__(advisor, key)
         self._setting_key = key
         self._attr_name = name
-        self._attr_icon = "mdi:speaker-message" if key == "speaker_enabled" else "mdi:bell-ring"
+        self._attr_icon = SWITCH_ICONS.get(key, "mdi:bell-ring")
 
 
 class SubscriberSwitch(_RestoredSwitch):

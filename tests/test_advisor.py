@@ -159,3 +159,58 @@ def test_indoor_temperature_alone_is_enough_to_speak():
 def test_sweater_threshold_is_configurable():
     a = build_advice(Readings(indoor_temp_c=17.0), Thresholds(indoor_cool_below=16.0), hour=7)
     assert not a.sweater_needed
+
+
+# -- prayer, fuel, wipers, briefing -------------------------------------------
+
+from datetime import datetime, timedelta, timezone
+
+from custom_components.comfort_advisor.advisor import (
+    build_briefing,
+    fill_up_cost,
+    next_prayer,
+    prayer_name,
+    wiper_reason,
+)
+
+
+def test_prayer_name_strips_integration_prefix():
+    assert prayer_name("sensor.islamic_prayer_times_asr") == "Asr"
+    assert prayer_name("sensor.my_isha") == "My Isha"
+
+
+def test_next_prayer_is_strictly_after_now():
+    t0 = datetime(2026, 10, 1, 12, 0, tzinfo=timezone.utc)
+    times = {"Dhuhr": t0, "Asr": t0 + timedelta(hours=3), "Maghrib": t0 + timedelta(hours=6)}
+    assert next_prayer(times, t0 - timedelta(minutes=1)) == ("Dhuhr", t0)
+    assert next_prayer(times, t0) == ("Asr", t0 + timedelta(hours=3))
+    assert next_prayer(times, t0 + timedelta(hours=7)) is None
+
+
+def test_fill_up_cost():
+    assert fill_up_cost(3.5, 10) == 35
+    assert fill_up_cost(3.5, 10, 75) == pytest.approx(8.75)
+    assert fill_up_cost(3.5, 10, 120) == 0
+
+
+@pytest.mark.parametrize(
+    "condition,temp,expected",
+    [("sunny", 10, False), ("snowy", 10, True), ("rainy", 10, True), ("hail", None, True),
+     ("cloudy", 1.9, True), ("cloudy", 2.0, False), (None, None, False)],
+)
+def test_wiper_reason(condition, temp, expected):
+    assert bool(wiper_reason(condition, temp, T)) is expected
+
+
+def test_briefing_covers_home_outside_prayer_and_gas():
+    advice = build_advice(
+        Readings(outdoor_temp_c=4, outdoor_humidity=30, indoor_temp_c=21, indoor_humidity=45), T, hour=8)
+    text = build_briefing(advice, prayer_text="Next prayer is Asr at 4:32 PM.", gas_text="Gas is $3.45.")
+    assert "Home is 21 degrees and 45 percent humidity." in text
+    assert "Wear a warm coat." in text
+    assert "apply moisturizer" in text
+    assert text.endswith("Next prayer is Asr at 4:32 PM. Gas is $3.45.")
+
+
+def test_briefing_is_empty_without_data():
+    assert build_briefing(build_advice(Readings(), T, hour=8)) == ""

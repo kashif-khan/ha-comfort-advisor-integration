@@ -1,4 +1,4 @@
-"""Comfort Advisor: jacket, moisturizer and humidifier advice by voice and phone."""
+"""Comfort Advisor: comfort, prayer, fuel and wiper advice by voice, phone and Android Auto."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -18,7 +18,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         for entry in hass.config_entries.async_loaded_entries(DOMAIN):
             await entry.runtime_data.async_announce(manual=True)
 
+    async def handle_car_briefing(_call: ServiceCall) -> None:
+        for entry in hass.config_entries.async_loaded_entries(DOMAIN):
+            await entry.runtime_data.async_car_briefing()
+
     hass.services.async_register(DOMAIN, "announce", handle_announce)
+    hass.services.async_register(DOMAIN, "car_briefing", handle_car_briefing)
     return True
 
 
