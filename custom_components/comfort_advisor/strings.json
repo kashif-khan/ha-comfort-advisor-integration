@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Comfort Advisor",
+        "description": "Only the outdoor temperature is required. Everything else is optional, and every threshold has a default you can change later from the device page.",
+        "data": {
+          "name": "Name",
+          "outdoor_temperature": "Outdoor temperature (sensor or weather entity)",
+          "outdoor_humidity": "Outdoor humidity (sensor or weather entity)",
+          "indoor_humidity": "Indoor humidity sensor",
+          "humidifiers": "Humidifiers",
+          "speakers": "Speakers to announce on",
+          "tts_entity": "TTS entity (auto-detected if empty)",
+          "announce_script": "Announcement script (optional, replaces direct TTS)",
+          "android_auto": "Show notifications on Android Auto"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Comfort Advisor",
+        "data": {
+          "outdoor_temperature": "Outdoor temperature (sensor or weather entity)",
+          "outdoor_humidity": "Outdoor humidity (sensor or weather entity)",
+          "indoor_humidity": "Indoor humidity sensor",
+          "humidifiers": "Humidifiers",
+          "speakers": "Speakers to announce on",
+          "tts_entity": "TTS entity (auto-detected if empty)",
+          "announce_script": "Announcement script (optional, replaces direct TTS)",
+          "android_auto": "Show notifications on Android Auto"
+        }
+      }
+    }
+  },
+  "services": {
+    "announce": {
+      "name": "Announce now",
+      "description": "Speak and notify the current advice right now."
+    }
+  }
+}
