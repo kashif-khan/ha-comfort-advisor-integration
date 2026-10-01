@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Hashable
 from dataclasses import dataclass, field
+from datetime import datetime
 
 JACKET_NONE = "none"
 JACKET_LIGHT = "light_jacket"
@@ -32,6 +33,7 @@ class Thresholds:
     humidifier_on_below: float = 35.0
     humidifier_off_above: float = 50.0
     indoor_cool_below: float = 18.0
+    wiper_below: float = 2.0
 
 
 @dataclass(frozen=True)
@@ -55,6 +57,17 @@ class Advice:
     # Metrics whose latest reading hasn't held steady long enough yet.
     pending: list[str] = field(default_factory=list)
     message: str = ""
+    # The stable readings the advice was built from (used by the car briefing).
+    outdoor_temp_c: float | None = None
+    outdoor_humidity: float | None = None
+    indoor_temp_c: float | None = None
+    indoor_humidity: float | None = None
+    # Why the wipers should go in service mode right now, if they should.
+    wiper_reason: str = ""
+
+    @property
+    def wiper_needed(self) -> bool:
+        return bool(self.wiper_reason)
 
     @property
     def action_needed(self) -> bool:
@@ -140,7 +153,12 @@ def build_advice(
     humidifiers_configured: bool = False,
 ) -> Advice:
     """Work out what to wear/apply/switch on and phrase it for speech."""
-    advice = Advice()
+    advice = Advice(
+        outdoor_temp_c=readings.outdoor_temp_c,
+        outdoor_humidity=readings.outdoor_humidity,
+        indoor_temp_c=readings.indoor_temp_c,
+        indoor_humidity=readings.indoor_humidity,
+    )
     parts: list[str] = []
 
     temp = readings.outdoor_temp_c
@@ -202,3 +220,109 @@ def build_advice(
     if parts:
         advice.message = " ".join([greeting(hour), *parts])
     return advice
+
+
+# -- prayer times ------------------------------------------------------------
+
+_PRAYER_PREFIX = "islamic_prayer_times_"
+
+
+def prayer_name(entity_id: str) -> str:
+    """'sensor.islamic_prayer_times_asr' -> 'Asr'."""
+    object_id = entity_id.split(".", 1)[-1]
+    if object_id.startswith(_PRAYER_PREFIX):
+        object_id = object_id[len(_PRAYER_PREFIX):]
+    return object_id.replace("_", " ").title()
+
+
+def next_prayer(times: dict[str, datetime], after: datetime) -> tuple[str, datetime] | None:
+    """The earliest prayer strictly after ``after``."""
+    upcoming = [(when, name) for name, when in times.items() if when > after]
+    if not upcoming:
+        return None
+    when, name = min(upcoming)
+    return name, when
+
+
+def prayer_time_message(name: str) -> str:
+    return f"It is time for {name} prayer."
+
+
+# -- fuel --------------------------------------------------------------------
+
+
+def fill_up_cost(price: float, tank_size: float, level_percent: float | None = None) -> float:
+    """Cost of filling the tank; ``level_percent`` is how full it already is."""
+    missing = 1.0
+    if level_percent is not None:
+        missing = max(0.0, min(100.0, 100.0 - level_percent)) / 100.0
+    return price * tank_size * missing
+
+
+# -- wipers ------------------------------------------------------------------
+
+_CONDITION_TEXT = {
+    "snowy": "It is snowing.",
+    "snowy-rainy": "It is sleeting.",
+    "hail": "It is hailing.",
+    "rainy": "It is raining.",
+    "pouring": "It is pouring rain.",
+    "lightning-rainy": "There is a thunderstorm with rain.",
+}
+
+
+def wiper_reason(
+    condition: str | None, temp_c: float | None, thresholds: Thresholds, fahrenheit: bool = False
+) -> str:
+    """Why the wipers should be put in service mode, or '' if there is no need.
+
+    Snow, hail, rain or a temperature below the freezing threshold all count:
+    any of them can leave the blades frozen to or buried on the glass.
+    """
+    parts: list[str] = []
+    if condition in _CONDITION_TEXT:
+        parts.append(_CONDITION_TEXT[condition])
+    if temp_c is not None and temp_c < thresholds.wiper_below:
+        shown = temp_c * 9 / 5 + 32 if fahrenheit else temp_c
+        parts.append(f"It is {round(shown)} degrees outside, cold enough to freeze the blades.")
+    return " ".join(parts)
+
+
+def wiper_message(reason: str) -> str:
+    return (
+        f"Welcome home. {reason} Put the wipers in service mode so the windshield "
+        "stays clear and the blades don't freeze to the glass."
+    )
+
+
+# -- car briefing ------------------------------------------------------------
+
+
+def build_briefing(
+    advice: Advice, *, fahrenheit: bool = False, prayer_text: str = "", gas_text: str = ""
+) -> str:
+    """Short status for the car display: home climate, what to wear, prayer, fuel."""
+
+    def shown(celsius: float) -> int:
+        return round(celsius * 9 / 5 + 32 if fahrenheit else celsius)
+
+    parts: list[str] = []
+    home: list[str] = []
+    if advice.indoor_temp_c is not None:
+        home.append(f"{shown(advice.indoor_temp_c)} degrees")
+    if advice.indoor_humidity is not None:
+        home.append(f"{round(advice.indoor_humidity)} percent humidity")
+    if home:
+        parts.append(f"Home is {' and '.join(home)}.")
+
+    if advice.outdoor_temp_c is not None and advice.jacket_level:
+        parts.append(
+            f"Outside it is {shown(advice.outdoor_temp_c)} degrees. {JACKET_TEXT[advice.jacket_level]}"
+        )
+    if advice.moisturizer_needed:
+        parts.append("The air is dry, so apply moisturizer.")
+    if prayer_text:
+        parts.append(prayer_text)
+    if gas_text:
+        parts.append(gas_text)
+    return " ".join(parts)

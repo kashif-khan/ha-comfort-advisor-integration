@@ -14,6 +14,13 @@ CONF_SPEAKERS = "speakers"
 CONF_TTS_ENTITY = "tts_entity"
 CONF_ANNOUNCE_SCRIPT = "announce_script"
 CONF_ANDROID_AUTO = "android_auto"
+CONF_PRAYER_SENSORS = "prayer_sensors"
+CONF_GAS_PRICE = "gas_price_entity"
+CONF_GAS_STATION = "gas_station_name"
+CONF_FUEL_LEVEL = "fuel_level_entity"
+CONF_WEATHER = "weather_entity"
+CONF_CAR_TRACKER = "car_tracker"
+CONF_CAR_MODE_SENSORS = "car_mode_sensors"
 
 # Number entities: key, name, default, min, max, step, kind
 NUMBERS = [
@@ -24,15 +31,20 @@ NUMBERS = [
     ("humidifier_on_below", "Humidifier on when indoor humidity below", 35.0, 0.0, 100.0, 1.0, "humidity"),
     ("humidifier_off_above", "Humidifier off when indoor humidity above", 50.0, 0.0, 100.0, 1.0, "humidity"),
     ("indoor_cool_below", "Sweater when indoor temperature below", 18.0, 5.0, 30.0, 0.5, "temperature"),
+    ("wiper_below", "Wiper service mode when outdoor temperature below", 2.0, -40.0, 40.0, 0.5, "temperature"),
+    ("tank_size", "Fuel tank size (gallons or liters)", 14.0, 1.0, 200.0, 0.5, "volume"),
     ("stable_minutes", "Minimum steady time before advice changes", 10.0, 0.0, 240.0, 1.0, "duration"),
 ]
-THRESHOLD_KEYS = [n[0] for n in NUMBERS if n[6] != "duration"]
+THRESHOLD_KEYS = [n[0] for n in NUMBERS if n[6] in ("temperature", "humidity")]
 
 # Master switches. All on/off defaults are opt-in except "only when needed".
 SWITCHES = [
     ("speaker_enabled", "Announce on speakers", True),
     ("notify_enabled", "Send notifications", True),
     ("only_when_needed", "Only announce when action needed", False),
+    ("prayer_alerts", "Announce prayer times", True),
+    ("car_briefing", "Send car briefing", True),
+    ("wiper_reminder", "Wiper service mode reminder", True),
 ]
 
 DEFAULT_ANNOUNCE_TIME = time(7, 30)
@@ -45,3 +57,6 @@ DEFAULT_SETTINGS = {
 
 SUBSCRIPTION_PREFIX = "sub_"
 NOTIFY_TAG = "comfort-advisor"
+PRAYER_TAG = "comfort-advisor-prayer"
+BRIEFING_TAG = "comfort-advisor-briefing"
+WIPER_TAG = "comfort-advisor-wipers"

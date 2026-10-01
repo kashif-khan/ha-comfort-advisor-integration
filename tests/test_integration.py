@@ -252,3 +252,142 @@ async def test_climate_entity_is_read_by_current_temperature(hass):
     await _set_stable_minutes(hass, 0)
     await hass.async_block_till_done()
     assert hass.states.get("binary_sensor.comfort_advisor_sweater_needed").state == "on"
+
+
+# -- prayer, gas, car briefing, wipers ----------------------------------------
+
+from homeassistant.core import HomeAssistant  # noqa: E402
+
+
+def _prayer_states(hass, base):
+    for name, delta in (("fajr", -6), ("dhuhr", 1), ("asr", 4), ("isha", 9)):
+        hass.states.async_set(
+            f"sensor.islamic_prayer_times_{name}", (base + timedelta(hours=delta)).isoformat(),
+            {"device_class": "timestamp"})
+
+
+PRAYERS = [f"sensor.islamic_prayer_times_{n}" for n in ("fajr", "dhuhr", "asr", "isha")]
+
+
+async def test_next_prayer_sensors_and_alert_at_prayer_time(hass, freezer):
+    speak = async_mock_service(hass, "tts", "speak")
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    _prayer_states(hass, dt_util.utcnow())
+    await _setup(hass, prayer_sensors=PRAYERS)
+    assert hass.states.get("sensor.comfort_advisor_next_prayer").state == "Dhuhr"
+    assert not speak and not alice
+
+    freezer.tick(timedelta(hours=1, minutes=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert speak[-1].data["message"] == "It is time for Dhuhr prayer."
+    assert alice[-1].data["message"] == "It is time for Dhuhr prayer."
+    assert alice[-1].data["data"]["car_ui"] is True
+    assert alice[-1].data["data"]["tag"] == "comfort-advisor-prayer"
+    assert hass.states.get("sensor.comfort_advisor_next_prayer").state == "Asr"
+
+
+async def test_prayer_alerts_can_be_switched_off(hass, freezer):
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    _prayer_states(hass, dt_util.utcnow())
+    await _setup(hass, prayer_sensors=PRAYERS)
+    await hass.services.async_call(
+        "switch", "turn_off", {"entity_id": "switch.comfort_advisor_announce_prayer_times"}, blocking=True)
+    freezer.tick(timedelta(hours=1, minutes=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert not alice
+    assert hass.states.get("sensor.comfort_advisor_next_prayer").state == "Asr"
+
+
+async def test_gas_price_and_fill_up_cost(hass):
+    hass.states.async_set("sensor.shell_regular", "3.50", {"friendly_name": "Shell"})
+    hass.states.async_set("sensor.car_fuel", "50")
+    await _setup(hass, gas_price_entity="sensor.shell_regular", gas_station_name="Costco",
+                 fuel_level_entity="sensor.car_fuel")
+    assert float(hass.states.get("sensor.comfort_advisor_gas_price").state) == 3.5
+    # default tank 14 gal, half full
+    assert float(hass.states.get("sensor.comfort_advisor_fill_up_cost").state) == 24.5
+    assert hass.states.get("sensor.comfort_advisor_gas_price").attributes["station"] == "Costco"
+    assert "Costco" in hass.states.get("sensor.comfort_advisor_car_briefing").attributes["message"]
+
+
+async def test_car_mode_sends_briefing_to_that_phone_only(hass):
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    bob = async_mock_service(hass, "notify", "mobile_app_bob_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    await _phone(hass, "bob", "Bob Phone", "bob_phone")
+    er.async_get(hass).async_get_or_create(
+        "binary_sensor", "mobile_app", "alice_car",
+        suggested_object_id="alice_phone_car_mode",
+        device_id=er.async_get(hass).async_get("device_tracker.alice_phone").device_id,
+        config_entry=hass.config_entries.async_entries("mobile_app")[0])
+    hass.states.async_set("binary_sensor.alice_phone_car_mode", "off")
+    hass.states.async_set("sensor.in_temp", "21", {"unit_of_measurement": "°C"})
+    await _setup(hass, indoor_temperature="sensor.in_temp",
+                 car_mode_sensors=["binary_sensor.alice_phone_car_mode"])
+
+    hass.states.async_set("binary_sensor.alice_phone_car_mode", "on")
+    await hass.async_block_till_done()
+    assert len(alice) == 1 and not bob
+    assert alice[0].data["title"] == "Car briefing"
+    assert "Home is 21 degrees" in alice[0].data["message"]
+
+
+async def test_car_briefing_service_goes_to_everyone(hass):
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    await _setup(hass)
+    await hass.services.async_call(DOMAIN, "car_briefing", {}, blocking=True)
+    assert len(alice) == 1
+    assert "Outside it is -3 degrees" in alice[0].data["message"]
+
+
+async def test_wiper_reminder_when_car_arrives_home_in_snow(hass):
+    speak = async_mock_service(hass, "tts", "speak")
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    hass.states.async_set("weather.home", "snowy", {"temperature": 3})
+    hass.states.async_set("device_tracker.car", "not_home")
+    await _setup(hass, weather_entity="weather.home", car_tracker="device_tracker.car")
+    assert hass.states.get("binary_sensor.comfort_advisor_wipers_service_mode_advised").state == "on"
+
+    hass.states.async_set("device_tracker.car", "home")
+    await hass.async_block_till_done()
+
+    assert "service mode" in alice[-1].data["message"] and "snowing" in alice[-1].data["message"]
+    assert alice[-1].data["data"]["tag"] == "comfort-advisor-wipers"
+    assert "service mode" in speak[-1].data["message"]
+
+
+async def test_wiper_reminder_when_freezing_without_precipitation(hass):
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    hass.states.async_set("device_tracker.car", "not_home")
+    await _setup(hass, car_tracker="device_tracker.car")  # outdoor temp is -3 °C
+    hass.states.async_set("device_tracker.car", "home")
+    await hass.async_block_till_done()
+    assert "freeze" in alice[-1].data["message"]
+
+
+async def test_no_wiper_reminder_in_fair_weather_or_when_disabled(hass):
+    alice = async_mock_service(hass, "notify", "mobile_app_alice_phone")
+    await _phone(hass, "alice", "Alice Phone", "alice_phone")
+    hass.states.async_set("device_tracker.car", "not_home")
+    hass.states.async_set("weather.home", "sunny", {"temperature": 20})
+    await _setup(hass, outdoor_temperature="weather.home", car_tracker="device_tracker.car")
+    hass.states.async_set("device_tracker.car", "home")
+    await hass.async_block_till_done()
+    assert not alice
+
+    hass.states.async_set("device_tracker.car", "not_home")
+    hass.states.async_set("weather.home", "snowy", {"temperature": 20})
+    await hass.services.async_call(
+        "switch", "turn_off", {"entity_id": "switch.comfort_advisor_wiper_service_mode_reminder"}, blocking=True)
+    await hass.async_block_till_done()
+    hass.states.async_set("device_tracker.car", "home")
+    await hass.async_block_till_done()
+    assert not alice

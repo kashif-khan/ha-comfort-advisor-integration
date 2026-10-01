@@ -14,7 +14,14 @@
           "speakers": "Speakers to announce on",
           "tts_entity": "TTS entity (auto-detected if empty)",
           "announce_script": "Announcement script (optional, replaces direct TTS)",
-          "android_auto": "Show notifications on Android Auto"
+          "android_auto": "Show notifications on Android Auto",
+          "prayer_sensors": "Prayer time sensors (e.g. Islamic Prayer Times: Fajr, Dhuhr, Asr, Maghrib, Isha)",
+          "gas_price_entity": "Favorite station gas price sensor (e.g. GasBuddy)",
+          "gas_station_name": "Favorite station name (spoken)",
+          "fuel_level_entity": "Car fuel level sensor, % (optional, for the fill-up cost)",
+          "weather_entity": "Weather entity for rain / snow (optional if outdoor temperature is a weather entity)",
+          "car_tracker": "Car location (device tracker) for the arrive-home wiper reminder",
+          "car_mode_sensors": "Android Auto / car mode sensors that trigger the car briefing"
         }
       }
     }
@@ -32,7 +39,14 @@
           "speakers": "Speakers to announce on",
           "tts_entity": "TTS entity (auto-detected if empty)",
           "announce_script": "Announcement script (optional, replaces direct TTS)",
-          "android_auto": "Show notifications on Android Auto"
+          "android_auto": "Show notifications on Android Auto",
+          "prayer_sensors": "Prayer time sensors (e.g. Islamic Prayer Times: Fajr, Dhuhr, Asr, Maghrib, Isha)",
+          "gas_price_entity": "Favorite station gas price sensor (e.g. GasBuddy)",
+          "gas_station_name": "Favorite station name (spoken)",
+          "fuel_level_entity": "Car fuel level sensor, % (optional, for the fill-up cost)",
+          "weather_entity": "Weather entity for rain / snow (optional if outdoor temperature is a weather entity)",
+          "car_tracker": "Car location (device tracker) for the arrive-home wiper reminder",
+          "car_mode_sensors": "Android Auto / car mode sensors that trigger the car briefing"
         }
       }
     }
@@ -41,6 +55,10 @@
     "announce": {
       "name": "Announce now",
       "description": "Speak and notify the current advice right now."
+    },
+    "car_briefing": {
+      "name": "Send car briefing",
+      "description": "Send home temperature and humidity, what to wear, next prayer and gas prices to the car display now."
     }
   }
 }

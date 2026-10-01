@@ -49,6 +49,29 @@ Only the outdoor temperature is required:
 
 Change any of these later with the integration's **Configure** button.
 
+## Android Auto: prayer, car briefing, gas and wipers
+
+All optional; set them in the same setup / **Configure** form. Everything below is delivered as a
+notification with `car_ui: true`, so it shows (and can be read aloud) on Android Auto. Turn off
+*Show notifications on Android Auto* to keep them phone-only.
+
+| What | Setup fields | Result |
+|---|---|---|
+| **Prayer time** | *Prayer time sensors*: the timestamp sensors of the core Islamic Prayer Times integration (Fajr, Dhuhr, Asr, Maghrib, Isha). Leave out Sunrise/Midnight unless you want an alert for them | "It is time for Asr prayer." on speakers and in the car at the prayer time, plus *Next prayer* and *Next prayer time* sensors |
+| **Home climate and what to wear** | Indoor temperature / humidity and outdoor temperature / humidity (above) | The car briefing: "Home is 21 degrees and 45 percent humidity. Outside it is 4 degrees. Wear a warm coat. The air is dry, so apply moisturizer." |
+| **Gas** | *Favorite station gas price sensor* (e.g. a [GasBuddy](https://github.com/firstof9/ha-gasbuddy) station sensor), *Favorite station name*, optional *Car fuel level sensor* (%) and the *Fuel tank size* number | "Gas at Costco is $3.45 per gallon. Filling up would cost about $48.30." With a fuel level sensor it prices only what is missing from the tank. *Gas price* and *Fill-up cost* sensors too |
+| **Wipers** | *Car location* (device tracker or person), optionally a *Weather entity* | When the car arrives home and it is snowing, sleeting, hailing, raining or below *Wiper service mode when outdoor temperature below* (default 2 °C), a reminder to put the wipers in service mode. Spoken on the home speakers too |
+
+**When the briefing is sent:** when a *car mode sensor* turns on (the Companion app's *Car mode*
+binary sensor for your phone, which is on while connected to Android Auto; it goes to that phone only),
+or on demand with the *Send car briefing* button / `comfort_advisor.car_briefing` service. The
+*Car briefing* sensor always holds the current text. The Companion app's own Android Auto screen can
+also list these entities if you add them to its favorites.
+
+The wiper reminder uses the current outdoor temperature (spike-filtered) and the weather condition
+at the moment the car arrives. Rain counts as well as snow and freezing, so turn the *Wiper service mode
+reminder* switch off or lower the threshold if rain alone shouldn't nag you.
+
 ## Entities (the device page is your settings screen)
 
 **Thresholds** (`number`, defaults shown, shown in your unit system, kept across restarts):
@@ -60,6 +83,8 @@ Change any of these later with the integration's **Configure** button.
 | Winter coat below | 0 °C |
 | Moisturizer when humidity below | 40 % |
 | Sweater when indoor temperature below | 18 °C |
+| Wiper service mode when outdoor temperature below | 2 °C |
+| Fuel tank size (gallons or liters, same unit as the price) | 14 |
 | Humidifier on when indoor humidity below | 35 % |
 | Humidifier off when indoor humidity above | 50 % |
 | Minimum steady time before advice changes | 10 min (`0` turns spike filtering off) |
@@ -71,6 +96,9 @@ Change any of these later with the integration's **Configure** button.
 | Announce on speakers | on | Master speaker toggle |
 | Send notifications | on | Master notification toggle |
 | Only announce when action needed | off | Skip the all-clear message |
+| Announce prayer times | on | Prayer-time speaker and car alerts |
+| Send car briefing | on | Briefing when a car mode sensor turns on |
+| Wiper service mode reminder | on | Arrive-home wiper reminder |
 | **Notify \<person\>** | **on** | One per person with the Companion app. Turn off to opt out. Phones that aren't linked to a person get their own switch |
 
 New phones and people are opted in automatically; their switch appears the next time the
