@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dark_logo.svg">
+    <img src="assets/logo.svg" alt="Comfort Advisor" height="96">
+  </picture>
+</p>
+
 # Comfort Advisor
 
 A Home Assistant custom integration (HACS-ready) that looks at the temperature and

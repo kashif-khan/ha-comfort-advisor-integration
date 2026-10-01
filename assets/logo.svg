@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 256" width="807" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1d2e"/><stop offset="1" stop-color="#070d16"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <rect x="9" y="9" width="238" height="238" rx="47" fill="none" stroke="#39f3ff" stroke-opacity=".35" stroke-width="3"/>
+  <g fill="none" stroke="#39f3ff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M92 66a16 16 0 0 1 32 0v70a32 32 0 1 1-32 0z"/><path d="M108 112v38"/><path d="M170 100c-18 24-28 38-28 52a28 28 0 0 0 56 0c0-14-10-28-28-52z" transform="translate(12 0)"/></g>
+  <text x="296" y="132" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#0f1d2e">Comfort Advisor</text>
+  <text x="298" y="182" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="6" fill="#39f3ff">INTEGRATION</text>
+</svg>
