@@ -21,6 +21,11 @@ notification**:
 
 Everything has a sensible default and every value is editable in the UI.
 
+> **Planned split:** the prayer, gas, car briefing and wiper features (1.3.0) are car-specific and
+> now live here because they share this integration's advice, speaker and notification plumbing.
+> Later they should move into their own integration (e.g. "Car Companion") that reads Comfort
+> Advisor's sensors, so Comfort Advisor can stay focused on jacket, moisturizer and humidifier advice.
+
 ## Install (HACS)
 
 HACS needs `custom_components/` at the root of a repo, so publish this folder as its

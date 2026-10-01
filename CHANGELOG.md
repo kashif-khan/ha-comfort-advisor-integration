@@ -12,6 +12,7 @@
 - **Wipers:** when the car tracker arrives home and it is snowing, raining, hailing or colder than the new
   *Wiper service mode when outdoor temperature below* threshold, you get a reminder to put the wipers in
   service mode. Adds the *Wipers service mode advised* binary sensor and a switch to turn the reminder off.
+- Note: these car features are planned to move into a separate integration later.
 
 ## 1.2.0
 - Optional indoor temperature (sensor or thermostat). When it is below the new *Sweater when indoor
