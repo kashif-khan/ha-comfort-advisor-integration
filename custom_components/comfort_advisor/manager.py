@@ -32,6 +32,7 @@ from .const import (
     CONF_ANNOUNCE_SCRIPT,
     CONF_HUMIDIFIERS,
     CONF_INDOOR_HUMIDITY,
+    CONF_INDOOR_TEMPERATURE,
     CONF_OUTDOOR_HUMIDITY,
     CONF_OUTDOOR_TEMPERATURE,
     CONF_SPEAKERS,
@@ -115,6 +116,7 @@ class ComfortAdvisor:
         self._trackers = {
             "outdoor temperature": StabilityTracker(),
             "outdoor humidity": StabilityTracker(),
+            "indoor temperature": StabilityTracker(),
             "indoor humidity": StabilityTracker(),
         }
         self._unsub_settle: Callable[[], None] | None = None
@@ -167,7 +169,12 @@ class ComfortAdvisor:
         cfg = self.config
         watched = [
             cfg.get(k)
-            for k in (CONF_OUTDOOR_TEMPERATURE, CONF_OUTDOOR_HUMIDITY, CONF_INDOOR_HUMIDITY)
+            for k in (
+                CONF_OUTDOOR_TEMPERATURE,
+                CONF_OUTDOOR_HUMIDITY,
+                CONF_INDOOR_TEMPERATURE,
+                CONF_INDOOR_HUMIDITY,
+            )
             if cfg.get(k)
         ] + list(cfg.get(CONF_HUMIDIFIERS) or [])
         if watched:
@@ -231,7 +238,12 @@ class ComfortAdvisor:
         state = self.hass.states.get(entity_id)
         if state is None or state.state in _BAD_STATES:
             return None
-        if state.domain == "weather":
+        if state.domain == "climate":
+            # A thermostat's state is its mode; the temperature is an attribute
+            # already expressed in the system's unit.
+            raw = state.attributes.get("current_temperature")
+            unit = None
+        elif state.domain == "weather":
             raw = state.attributes.get(weather_attr)
             unit = state.attributes.get(f"{weather_attr}_unit")
         else:
@@ -272,6 +284,7 @@ class ComfortAdvisor:
         raw = {
             "outdoor temperature": self._read_temp_c(cfg.get(CONF_OUTDOOR_TEMPERATURE)),
             "outdoor humidity": self._read_humidity(cfg.get(CONF_OUTDOOR_HUMIDITY)),
+            "indoor temperature": self._read_temp_c(cfg.get(CONF_INDOOR_TEMPERATURE)),
             "indoor humidity": self._read_humidity(cfg.get(CONF_INDOOR_HUMIDITY)),
         }
         # What advice a reading would trigger; a reading is only trusted once
@@ -279,6 +292,7 @@ class ComfortAdvisor:
         bands = {
             "outdoor temperature": lambda v: jacket_level(v, thresholds),
             "outdoor humidity": lambda v: v < thresholds.moisturizer_below,
+            "indoor temperature": lambda v: v < thresholds.indoor_cool_below,
             "indoor humidity": lambda v: (
                 v < thresholds.humidifier_on_below,
                 v > thresholds.humidifier_off_above,
@@ -297,6 +311,7 @@ class ComfortAdvisor:
                 outdoor_temp_c=stable["outdoor temperature"],
                 outdoor_humidity=stable["outdoor humidity"],
                 indoor_humidity=stable["indoor humidity"],
+                indoor_temp_c=stable["indoor temperature"],
             ),
             thresholds,
             hour=dt_util.now().hour,

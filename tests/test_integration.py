@@ -233,3 +233,22 @@ async def test_steady_time_is_configurable(hass, freezer):
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert hass.states.get("sensor.comfort_advisor_jacket_advice").state == "none"
+
+
+async def test_indoor_temperature_from_sensor_and_thermostat(hass):
+    hass.states.async_set("sensor.in_temp", "16", {"unit_of_measurement": "°C"})
+    await _setup(hass, indoor_temperature="sensor.in_temp")
+    assert hass.states.get("binary_sensor.comfort_advisor_sweater_needed").state == "on"
+    assert "put on a sweater" in hass.states.get(
+        "sensor.comfort_advisor_advice_message").attributes["message"]
+    assert float(hass.states.get("number.comfort_advisor_sweater_when_indoor_temperature_below").state) == 18.0
+
+
+async def test_climate_entity_is_read_by_current_temperature(hass):
+    hass.states.async_set("climate.hall", "heat", {"current_temperature": 21.5})
+    await _setup(hass, indoor_temperature="climate.hall")
+    assert hass.states.get("binary_sensor.comfort_advisor_sweater_needed").state == "off"
+    hass.states.async_set("climate.hall", "heat", {"current_temperature": 15})
+    await _set_stable_minutes(hass, 0)
+    await hass.async_block_till_done()
+    assert hass.states.get("binary_sensor.comfort_advisor_sweater_needed").state == "on"

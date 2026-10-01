@@ -31,6 +31,7 @@ class Thresholds:
     moisturizer_below: float = 40.0
     humidifier_on_below: float = 35.0
     humidifier_off_above: float = 50.0
+    indoor_cool_below: float = 18.0
 
 
 @dataclass(frozen=True)
@@ -38,12 +39,14 @@ class Readings:
     outdoor_temp_c: float | None = None
     outdoor_humidity: float | None = None
     indoor_humidity: float | None = None
+    indoor_temp_c: float | None = None
 
 
 @dataclass
 class Advice:
     jacket_level: str | None = None
     jacket_needed: bool = False
+    sweater_needed: bool = False
     moisturizer_needed: bool = False
     humidifier_needed: bool = False
     humidifier_off_suggested: bool = False
@@ -57,6 +60,7 @@ class Advice:
     def action_needed(self) -> bool:
         return (
             self.jacket_needed
+            or self.sweater_needed
             or self.moisturizer_needed
             or self.humidifier_needed
             or self.humidifier_off_suggested
@@ -146,6 +150,15 @@ def build_advice(
         shown = temp * 9 / 5 + 32 if fahrenheit else temp
         parts.append(f"It is {round(shown)} degrees outside.")
         parts.append(JACKET_TEXT[advice.jacket_level])
+
+    indoor_temp = readings.indoor_temp_c
+    if indoor_temp is not None and indoor_temp < thresholds.indoor_cool_below:
+        advice.sweater_needed = True
+        shown = indoor_temp * 9 / 5 + 32 if fahrenheit else indoor_temp
+        parts.append(
+            f"It is only {round(shown)} degrees indoors, so put on a sweater "
+            "or turn up the heating."
+        )
 
     # Skin dries out with the air around you outdoors; fall back to indoors.
     skin_humidity = (

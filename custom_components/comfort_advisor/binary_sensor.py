@@ -10,6 +10,7 @@ from .entity import ComfortEntity
 # key, name, icon, advice attribute
 SENSORS = [
     ("jacket_needed", "Jacket needed", "mdi:coat-rack", "jacket_needed"),
+    ("sweater_needed", "Sweater needed", "mdi:tshirt-crew", "sweater_needed"),
     ("moisturizer_needed", "Moisturizer needed", "mdi:lotion-outline", "moisturizer_needed"),
     ("humidifier_needed", "Humidifier needed", "mdi:air-humidifier", "humidifier_needed"),
     ("humidifier_off_suggested", "Humidifier can be turned off", "mdi:air-humidifier-off", "humidifier_off_suggested"),

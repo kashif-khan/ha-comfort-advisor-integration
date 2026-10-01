@@ -11,7 +11,7 @@ A Home Assistant custom integration (HACS-ready) that looks at the temperature a
 humidity and tells you, by **speaker announcement** and **phone / Android Auto
 notification**:
 
-- whether you need a **jacket** (light jacket, warm coat or winter coat),
+- whether you need a **jacket** outside, or a **sweater** when it is cool indoors, (light jacket, warm coat or winter coat),
 - whether to apply **moisturizer** (dry air),
 - which **humidifiers** to turn on (indoor air too dry) or off (too humid).
 
@@ -39,6 +39,7 @@ Only the outdoor temperature is required:
 |---|---|---|
 | Outdoor temperature | yes | A sensor, or a `weather` entity (any unit, converted automatically) |
 | Outdoor humidity | no | Sensor or `weather` entity. Drives the moisturizer advice |
+| Indoor temperature | no | A sensor or a `climate` thermostat. Triggers the sweater advice when the house is cool |
 | Indoor humidity | no | Drives humidifier advice (and moisturizer if there is no outdoor humidity) |
 | Humidifiers | no | Named in the message when they need turning on or off |
 | Speakers | no | Skip for notifications only |
@@ -58,6 +59,7 @@ Change any of these later with the integration's **Configure** button.
 | Warm coat below | 7 °C |
 | Winter coat below | 0 °C |
 | Moisturizer when humidity below | 40 % |
+| Sweater when indoor temperature below | 18 °C |
 | Humidifier on when indoor humidity below | 35 % |
 | Humidifier off when indoor humidity above | 50 % |
 | Minimum steady time before advice changes | 10 min (`0` turns spike filtering off) |
@@ -75,7 +77,7 @@ New phones and people are opted in automatically; their switch appears the next 
 integration scans (when a notify service registers, or at each announcement).
 
 **Other:** `time` *Announcement time* (default 07:30), `button` *Announce now*,
-`sensor` *Jacket advice* / *Advice message*, and `binary_sensor`s *Jacket needed*,
+`sensor` *Jacket advice* / *Advice message*, and `binary_sensor`s *Jacket needed*, *Sweater needed*,
 *Moisturizer needed*, *Humidifier needed*, *Humidifier can be turned off*, *Readings settling* for your own
 automations and dashboards. The service `comfort_advisor.announce` does the same as the button.
 

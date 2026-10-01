@@ -20,6 +20,7 @@ from .const import (
     CONF_ANNOUNCE_SCRIPT,
     CONF_HUMIDIFIERS,
     CONF_INDOOR_HUMIDITY,
+    CONF_INDOOR_TEMPERATURE,
     CONF_OUTDOOR_HUMIDITY,
     CONF_OUTDOOR_TEMPERATURE,
     CONF_SPEAKERS,
@@ -43,6 +44,7 @@ def _schema(values: Mapping[str, Any], with_name: bool = False) -> vol.Schema:
         {
             vol.Required(CONF_OUTDOOR_TEMPERATURE, description=suggested(CONF_OUTDOOR_TEMPERATURE)): _entity(["sensor", "weather"]),
             vol.Optional(CONF_OUTDOOR_HUMIDITY, description=suggested(CONF_OUTDOOR_HUMIDITY)): _entity(["sensor", "weather"]),
+            vol.Optional(CONF_INDOOR_TEMPERATURE, description=suggested(CONF_INDOOR_TEMPERATURE)): _entity(["sensor", "climate"]),
             vol.Optional(CONF_INDOOR_HUMIDITY, description=suggested(CONF_INDOOR_HUMIDITY)): _entity("sensor"),
             vol.Optional(CONF_HUMIDIFIERS, description=suggested(CONF_HUMIDIFIERS)): _entity("humidifier", True),
             vol.Optional(CONF_SPEAKERS, description=suggested(CONF_SPEAKERS)): _entity("media_player", True),

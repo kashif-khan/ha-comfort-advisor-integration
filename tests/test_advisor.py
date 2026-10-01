@@ -139,3 +139,23 @@ def test_unavailable_readings_keep_last_stable_value():
     t = _tracker()
     t.record(60 * MIN, None)
     assert t.evaluate(60 * MIN, 10 * MIN, _band) == 20.0 and not t.pending
+
+
+def test_cool_house_suggests_a_sweater():
+    a = build_advice(Readings(20, None, None, 16.0), T, hour=7)
+    assert a.sweater_needed and a.action_needed
+    assert "16 degrees indoors" in a.message and "sweater" in a.message
+
+
+def test_comfortable_house_says_nothing_about_indoor_temperature():
+    a = build_advice(Readings(20, None, None, 21.0), T, hour=7)
+    assert not a.sweater_needed and "indoors" not in a.message
+
+
+def test_indoor_temperature_alone_is_enough_to_speak():
+    assert "sweater" in build_advice(Readings(indoor_temp_c=15.0), T, hour=7).message
+
+
+def test_sweater_threshold_is_configurable():
+    a = build_advice(Readings(indoor_temp_c=17.0), Thresholds(indoor_cool_below=16.0), hour=7)
+    assert not a.sweater_needed

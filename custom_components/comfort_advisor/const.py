@@ -7,6 +7,7 @@ DOMAIN = "comfort_advisor"
 
 CONF_OUTDOOR_TEMPERATURE = "outdoor_temperature"
 CONF_OUTDOOR_HUMIDITY = "outdoor_humidity"
+CONF_INDOOR_TEMPERATURE = "indoor_temperature"
 CONF_INDOOR_HUMIDITY = "indoor_humidity"
 CONF_HUMIDIFIERS = "humidifiers"
 CONF_SPEAKERS = "speakers"
@@ -22,6 +23,7 @@ NUMBERS = [
     ("moisturizer_below", "Moisturizer when humidity below", 40.0, 0.0, 100.0, 1.0, "humidity"),
     ("humidifier_on_below", "Humidifier on when indoor humidity below", 35.0, 0.0, 100.0, 1.0, "humidity"),
     ("humidifier_off_above", "Humidifier off when indoor humidity above", 50.0, 0.0, 100.0, 1.0, "humidity"),
+    ("indoor_cool_below", "Sweater when indoor temperature below", 18.0, 5.0, 30.0, 0.5, "temperature"),
     ("stable_minutes", "Minimum steady time before advice changes", 10.0, 0.0, 240.0, 1.0, "duration"),
 ]
 THRESHOLD_KEYS = [n[0] for n in NUMBERS if n[6] != "duration"]
